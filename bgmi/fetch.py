@@ -12,7 +12,7 @@ from itertools import chain
 import requests
 
 import bgmi.config
-from bgmi.config import FETCH_URL, TEAM_URL, NAME_URL, DETAIL_URL, LANG, MAX_PAGE
+from bgmi.config import ROOT_URL, FETCH_URL, TEAM_URL, NAME_URL, DETAIL_URL, FILE_URL, LANG, MAX_PAGE, DOWNLOAD_DELEGATE
 from bgmi.models import Bangumi, Filter, Subtitle, STATUS_FOLLOWED, STATUS_UPDATED
 from bgmi.utils.utils import print_error, print_warning, print_info, \
     test_connection, bug_report, get_terminal_col, GREEN, YELLOW, COLOR_END
@@ -253,16 +253,34 @@ def fetch_episode(_id, name='', **kwargs):
             response_data.extend(response['torrents'])
     else:
         response_data = []
-        for i in range(int(max_page)):
-            if max_page > 1:
-                print_info('Fetch page {0} ...'.format(i + 1))
-            response = get_response(DETAIL_URL, 'POST', json={'tag_id': [_id], 'p': i + 1})
-            if response:
-                response_data.extend(response['torrents'])
-
+        response = get_response(DETAIL_URL, 'POST', json={'tag_id': [_id], 'p': 1})
+        if (response['page_count'] < int(max_page)) or (int(max_page) < 0):
+            max_page = response['page_count']
+        if response:
+            response_data.extend(response['torrents'])
+        if max_page > 1:
+            for i in range(1, int(max_page)):
+                if max_page > 1:
+                    print_info('Fetch page {0} ...'.format(i + 1))
+                response = get_response(DETAIL_URL, 'POST', json={'tag_id': [_id], 'p': i + 1})
+                if response:
+                    response_data.extend(response['torrents'])
+    download_urls = {}
+    file_ids = []
     for info in response_data:
+        response_data.append(info['file_id'])
+    response = get_response(FILE_URL, 'POST', json={'_ids': file_ids})
+    if response:
+        for data in response:
+            download_urls[data['_id']] = '{0}{1}'.format(ROOT_URL, data['savepath'])
+    for info in response_data:
+        # Better safe than sorry
+        if (DOWNLOAD_DELEGATE == 'transmission-rpc') and (download_urls[info['file_id']]):
+            download_url = download_urls[info['file_id']]
+        else: 
+            download_url = info['magnet']
         result.append({
-            'download': info['magnet'],
+            'download': download_url,
             'name': name,
             'subtitle_group': info['team_id'],
             'title': info['title'],

@@ -210,7 +210,9 @@ IS_PYTHON3 = sys.version_info > (3, 0)
 
 # Detail URL
 __split = '/' if not BANGUMI_MOE_URL.endswith('/') else ''
-FETCH_URL = '{0}{1}api/bangumi/current'.format(BANGUMI_MOE_URL, __split)
-TEAM_URL = '{0}{1}api/team/working'.format(BANGUMI_MOE_URL, __split)
-NAME_URL = '{0}{1}api/tag/fetch'.format(BANGUMI_MOE_URL, __split)
-DETAIL_URL = '{0}{1}api/torrent/search'.format(BANGUMI_MOE_URL, __split)
+ROOT_URL = '{0}{1}'.format(BANGUMI_MOE_URL, __split)
+FETCH_URL = '{0}api/bangumi/current'.format(ROOT_URL, __split)
+TEAM_URL = '{0}api/team/working'.format(ROOT_URL, __split)
+NAME_URL = '{0}api/tag/fetch'.format(ROOT_URL, __split)
+DETAIL_URL = '{0}api/torrent/search'.format(ROOT_URL, __split)
+FILE_URL = '{0}api/file/fetch'.format(ROOT_URL, __split)
