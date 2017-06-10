@@ -268,7 +268,7 @@ def fetch_episode(_id, name='', **kwargs):
     download_urls = {}
     file_ids = []
     for info in response_data:
-        response_data.append(info['file_id'])
+        file_ids.append(info['file_id'])
     response = get_response(FILE_URL, 'POST', json={'_ids': file_ids})
     if response:
         for data in response:
